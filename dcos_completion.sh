@@ -1,18 +1,3 @@
-# _foo() 
-# {
-#     local cur prev opts
-#     COMPREPLY=()
-#     cur="${COMP_WORDS[COMP_CWORD]}"
-#     prev="${COMP_WORDS[COMP_CWORD-1]}"
-#     opts="--help --verbose --version"
-
-#     if [[ ${cur} == -* ]] ; then
-#         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-#         return 0
-#     fi
-# }
-# complete -F _foo foo
-
 shopt -s extglob
 
 # This took heavy inspiration from https://github.com/docker/docker/blob/9058ec3be5edaa313caa02371ebe7d7ac64f2faa/contrib/completion/bash/docker
@@ -74,10 +59,20 @@ __dcos_log childCommand.ret1
 	return 1
 }
 
+#######################################################################################
+##
+## Completion helpers
+##
+
 __dcos_complete_marathon_app_ids(){
 	local apps=( $(dcos marathon app list --json | jq --raw-output ".[] | .id") )
 	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
 }
+
+#######################################################################################
+##
+## dcos auth
+##
 
 
 _dcos_auth(){
@@ -96,9 +91,33 @@ _dcos_auth(){
 	esac
 	return 0;
 }
+
+#######################################################################################
+##
+## dcos config
+##
+
 # TODO - config
+
+#######################################################################################
+##
+## dcos help
+##
+
 # TODO - help
+
+#######################################################################################
+##
+## dcos job
+##
+
 # TODO - job
+
+
+#######################################################################################
+##
+## dcos marathon
+##
 
 _dcos_marathon_app_about(){
 	return 0; # suppress completion
@@ -269,8 +288,26 @@ _dcos_marathon(){
 	return 0;	
 }
 
+#######################################################################################
+##
+## dcos package
+##
+
 # TODO - package
+
+#######################################################################################
+##
+## dcos service
+##
+
 # TODO - service
+
+
+#######################################################################################
+##
+## dcos task
+##
+
 # TODO - task
 
 _dcos()
@@ -289,9 +326,6 @@ _dcos()
     local cur prev words cword
 	_get_comp_words_by_ref -n : cur prev words cword
 
-    # current="${COMP_WORDS[COMP_CWORD]}"
-    # previous="${COMP_WORDS[COMP_CWORD-1]}"
-
     currentCommandChain=""
    	command_pos=0
     __dcos_childCommand "$commands" && return
@@ -306,37 +340,5 @@ _dcos()
 			;;
 	esac
 
-
-    # # complete top-level commands
-    # if [[ ${COMP_CWORD} == 1 ]] ; then 
-    #     COMPREPLY=( $(compgen -W "${commands}" -- ${current}) )
-    #     return 0
-    # fi
-    # if [[ ${COMP_CWORD} -ge 2 ]] ; then
-    #     currentWordIndex=1
-    #     currentCommandChain=""
-    #     __dcos_childCommand "$commands" && return       
-    # fi 
-
 }
 complete -F _dcos dcos
-
-## Notes
-# create a subcommands function like the docker one, but we need to go deeper than cmd+subcmd
-# e.g. dcos marathon group list
-# so...have a global variable that stores the command chain and find sub command at current level
-# then set the cmd chain to include that and call into that function
-# all functions then call the subcommand function as per docker style
-# could then use this at the top-level, i.e. to complete the first level of commads as well
-
-
-# bar[0]=123
-# $echo ${bar[0]}
-#     123
-# $ bar[1]=asd
-# $ echo ${bar[1]}
-#     asd
-# $ echo ${bar[0]}
-#     123
-# $ echo ${#bar[@]}
-#     2
