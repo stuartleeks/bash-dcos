@@ -68,6 +68,10 @@ __dcos_complete_marathon_app_ids(){
 	local apps=( $(dcos marathon app list --json | jq --raw-output ".[] | .id") )
 	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
 }
+__dcos_complete_marathon_deployment_ids(){
+	local apps=( $(dcos marathon deployment list --json | jq --raw-output ".[] | .id") )
+	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
+}
 __dcos_complete_marathon_group_ids(){
 	local apps=( $(dcos marathon group list --json | jq --raw-output ".[] | .id") )
 	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
@@ -277,8 +281,50 @@ _dcos_marathon_app(){
 ## dcos marathon deployment
 ##
 
-## TODO
+_dcos_marathon_deployment_list(){
+	COMPREPLY=( $( compgen -W "--json" -- "$cur" ) )
+	return 0;
+}
+_dcos_marathon_deployment_rollback(){
+	__dcos_complete_marathon_deployment_ids
+	return 0;
+}
+_dcos_marathon_deployment_stop(){
+	__dcos_complete_marathon_deployment_ids
+	return 0;
+}
+_dcos_marathon_deployment_watch(){
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--interval --max-count= " -- "$cur" ) )
+			;;
+		*)
+			cur="${cur##*=}"
+			__dcos_complete_marathon_deployment_ids
+			return 0
+			;;
+	esac
+	return 0;
+}
+_dcos_marathon_deployment(){
+    local subcommands="
+		list
+		rollback
+		stop
+		watch
+    "
+   	__dcos_childCommand "$subcommands" && return
 
+	case "$cur" in
+		"")
+			COMPREPLY=( $( compgen -W "$subcommands") )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+	return 0;
+}
 
 ##
 ## dcos marathon group
