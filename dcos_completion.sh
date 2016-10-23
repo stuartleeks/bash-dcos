@@ -81,6 +81,12 @@ __dcos_complete_marathon_task_ids(){
 	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
 }
 
+__dcos_complete_task_ids(){
+	local apps=( $(dcos task ls | grep "===>" | awk '{print $2}') )
+	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
+}
+
+
 #######################################################################################
 ##
 ## dcos auth
@@ -574,6 +580,51 @@ _dcos_marathon(){
 ##
 
 # TODO - task
+_dcos_task_log(){
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--completed --follow --lines=" -- "$cur" ) )
+			;;
+		*)
+			cur="${cur##*=}"
+			__dcos_complete_task_ids
+			return 0
+			;;
+	esac
+	return 0;
+}
+_dcos_task_log(){
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--long --completed" -- "$cur" ) )
+			;;
+		*)
+			cur="${cur##*=}"
+			__dcos_complete_task_ids
+			return 0
+			;;
+	esac
+	## TODO - handle path completion
+	return 0;
+}
+_dcos_task(){
+    local subcommands="
+        log
+		ls
+    "
+
+   	__dcos_childCommand "$subcommands" && return
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help --info --completed --json" -- "$cur" ) )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+	return 0;	
+}
 
 _dcos()
 {
