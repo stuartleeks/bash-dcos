@@ -76,6 +76,10 @@ __dcos_complete_marathon_group_ids(){
 	local apps=( $(dcos marathon group list --json | jq --raw-output ".[] | .id") )
 	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
 }
+__dcos_complete_marathon_task_ids(){
+	local apps=( $(dcos marathon task list --json | jq --raw-output ".[] | .id") )
+	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
+}
 
 #######################################################################################
 ##
@@ -484,7 +488,46 @@ _dcos_marathon_pod(){
 ## dcos marathon task
 ##
 
-## TODO
+
+_dcos_marathon_task_list(){
+	COMPREPLY=( $( compgen -W "--json" -- "$cur" ) )
+	return 0;
+}
+_dcos_marathon_task_stop(){
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--wipe" -- "$cur" ) )
+			;;
+		*)
+			cur="${cur##*=}"
+			__dcos_complete_marathon_task_ids
+			return 0
+			;;
+	esac
+	return 0;
+}
+_dcos_marathon_task_show(){
+	__dcos_complete_marathon_task_ids
+	return 0;
+}
+_dcos_marathon_task(){
+    local subcommands="
+		list
+		stop
+		show
+    "
+   	__dcos_childCommand "$subcommands" && return
+
+	case "$cur" in
+		"")
+			COMPREPLY=( $( compgen -W "$subcommands") )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+	return 0;
+}
 
 
 _dcos_marathon(){
