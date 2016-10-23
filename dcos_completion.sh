@@ -418,7 +418,66 @@ _dcos_marathon_group(){
 ## dcos marathon pod
 ##
 
-## TODO
+_dcos_marathon_pod_add(){
+	return 0; ## TODO add pod-id completion
+}
+_dcos_marathon_pod_kill(){
+	return 0; ## TODO add pod-id completion, and instance ids
+}
+_dcos_marathon_pod_list(){
+	COMPREPLY=( $( compgen -W "--json" -- "$cur" ) )
+	return 0;
+}
+_dcos_marathon_pod_remove(){
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--force" -- "$cur" ) )
+			;;
+		*)
+			cur="${cur##*=}"
+			## TODO add pod-id completion
+			return 0
+			;;
+	esac
+	return 0;
+}
+_dcos_marathon_pod_show(){
+	return 0; ## TODO add pod-id completion
+}
+_dcos_marathon_pod_update(){
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--force" -- "$cur" ) )
+			;;
+		*)
+			cur="${cur##*=}"
+			## TODO add pod-id completion
+			return 0
+			;;
+	esac
+	return 0;
+}
+_dcos_marathon_pod(){
+    local subcommands="
+		add
+		kill
+		list
+		remove
+		show
+		update
+    "
+   	__dcos_childCommand "$subcommands" && return
+
+	case "$cur" in
+		"")
+			COMPREPLY=( $( compgen -W "$subcommands") )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+	return 0;
+}
 
 
 ##
