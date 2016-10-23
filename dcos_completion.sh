@@ -68,6 +68,10 @@ __dcos_complete_marathon_app_ids(){
 	local apps=( $(dcos marathon app list --json | jq --raw-output ".[] | .id") )
 	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
 }
+__dcos_complete_marathon_group_ids(){
+	local apps=( $(dcos marathon group list --json | jq --raw-output ".[] | .id") )
+	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
+}
 
 #######################################################################################
 ##
@@ -119,9 +123,18 @@ _dcos_auth(){
 ## dcos marathon
 ##
 
-_dcos_marathon_app_about(){
+
+
+##
+## dcos marathon about
+##
+_dcos_marathon_about(){
 	return 0; # suppress completion
 }
+
+##
+## dcos marathon app
+##
 _dcos_marathon_app_add(){
 	COMPREPLY=( $( compgen -o filenames -A file -- "$cur" ) )
 	return 0;
@@ -228,7 +241,7 @@ _dcos_marathon_app_update(){
 			;;
 		*)
 			cur="${cur##*=}"
-			__dcos_complete_a__dcos_complete_marathon_app_idspp_ids
+			__dcos_complete_marathon_app_ids
 			return 0
 			;;
 	esac ## TODO complete properties
@@ -248,23 +261,127 @@ _dcos_marathon_app(){
 		update
 		version
     "
-
-__dcos_log marathon.app.enter.
-
    	__dcos_childCommand "$subcommands" && return
 
 	case "$cur" in
 		"")
-__dcos_log marathon.app.noCur.
 			COMPREPLY=( $( compgen -W "$subcommands") )
 			;;
 		*)
-__dcos_log marathon.app.cur=$cur.
 			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
 			;;
 	esac
 	return 0;
 }
+##
+## dcos marathon deployment
+##
+
+## TODO
+
+
+##
+## dcos marathon group
+##
+
+_dcos_marathon_group_add(){
+	COMPREPLY=( $( compgen -o filenames -A file -- "$cur" ) )
+	return 0;
+}
+_dcos_marathon_group_list(){
+	COMPREPLY=( $( compgen -W "--json" -- "$cur" ) )
+	return 0;
+}
+_dcos_marathon_group_scale(){
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--force" -- "$cur" ) )
+			;;
+		*)
+			cur="${cur##*=}"
+			__dcos_complete_marathon_group_ids
+			return 0
+			;;
+	esac
+	return 0;
+}
+_dcos_marathon_group_show(){
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--group-version=" -- "$cur" ) ) # TODO complete version numbers
+			;;
+		*)
+			cur="${cur##*=}"
+			__dcos_complete_marathon_group_ids
+			return 0
+			;;
+	esac
+	return 0;
+}
+_dcos_marathon_group_remove(){
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--force" -- "$cur" ) )
+			;;
+		*)
+			cur="${cur##*=}"
+			__dcos_complete_marathon_group_ids
+			return 0
+			;;
+	esac
+	return 0;
+}
+_dcos_marathon_group_update(){
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--force" -- "$cur" ) )
+			;;
+		*)
+			cur="${cur##*=}"
+			__dcos_complete_marathon_group_ids
+			return 0
+			;;
+	esac ## TODO complete properties
+	return 0;
+}
+_dcos_marathon_group(){
+    local subcommands="
+		add
+		list
+		scale
+		show
+		remove
+		update
+    "
+   	__dcos_childCommand "$subcommands" && return
+
+	case "$cur" in
+		"")
+			COMPREPLY=( $( compgen -W "$subcommands") )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+	return 0;
+}
+
+
+
+##
+## dcos marathon pod
+##
+
+## TODO
+
+
+##
+## dcos marathon task
+##
+
+## TODO
+
+
 _dcos_marathon(){
     local subcommands="
         about
