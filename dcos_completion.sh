@@ -37,10 +37,6 @@ __dcos_log child.Command.chain=$currentCommandChain
 
 	while [ $counter -le $cword ]; do
 		case "${words[$counter]}" in
-			"")
-__dcos_log childCommand.ret1
-				return 1
-				;;
 			$(__dcos_to_extglob "$subcommands") )
 				command_pos=$counter
 				local subcommand=${words[$counter]}
@@ -64,6 +60,8 @@ __dcos_log childCommand.ret1
 ## Completion helpers
 ##
 
+# TODO look at how to cache some of this :-)
+
 __dcos_complete_marathon_app_ids(){
 	local apps=( $(dcos marathon app list --json | jq --raw-output ".[] | .id") )
 	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
@@ -78,6 +76,15 @@ __dcos_complete_marathon_group_ids(){
 }
 __dcos_complete_marathon_task_ids(){
 	local apps=( $(dcos marathon task list --json | jq --raw-output ".[] | .id") )
+	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
+}
+
+__dcos_complete_package_names(){
+	local apps=( $(dcos package search --json | jq --raw-output ".[] | .[]  | .name") )
+	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
+}
+__dcos_complete_package_repo_names(){
+	local apps=( $(dcos package repo list --json | jq --raw-output ".[] | .[]  | .name") )
 	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
 }
 
@@ -565,6 +572,126 @@ _dcos_marathon(){
 ##
 
 # TODO - package
+_dcos_package_describe(){
+	case "$cur" in
+		-*)
+			# TODO complete options file
+			COMPREPLY=( $( compgen -W "--app --cli --config --render --package-versions --options=" -- "$cur" ) )
+			;;
+		*)
+			cur="${cur##*=}"
+			__dcos_complete_package_names
+			return 0
+			;;
+	esac
+	return 0;
+}
+_dcos_package_install(){
+	case "$cur" in
+		-*)
+			# TODO complete options file
+			# TODO complete app id
+			# TODO complete package version
+			COMPREPLY=( $( compgen -W "--cli --app --app-id= --package-version= --option= --yes" -- "$cur" ) )
+			;;
+		*)
+			cur="${cur##*=}"
+			__dcos_complete_package_names
+			return 0
+			;;
+	esac
+	return 0;
+}
+_dcos_package_list(){
+	case "$cur" in
+		-*)
+			# TODO complete app id
+			COMPREPLY=( $( compgen -W "--json --cli --app-id= " -- "$cur" ) )
+			;;
+		*)
+			cur="${cur##*=}"
+			__dcos_complete_package_names
+			return 0
+			;;
+	esac
+	return 0;
+}
+_dcos_package_search(){
+	case "$cur" in
+		-*)
+			# TODO complete app id
+			COMPREPLY=( $( compgen -W "--json" -- "$cur" ) )
+			;;
+		*)
+			;;
+	esac
+	return 0;
+}
+_dcos_package_repo_add(){
+	case "$cur" in
+		-*)
+			# TODO complete app id
+			COMPREPLY=( $( compgen -W "--index" -- "$cur" ) )
+			;;
+		*)
+			;;
+	esac
+	return 0;
+}
+_dcos_package_repo_remove(){
+	__dcos_complete_package_repo_names
+	return 0;
+}
+_dcos_package_repo_list(){
+	case "$cur" in
+		-*)
+			# TODO complete app id
+			COMPREPLY=( $( compgen -W "--json" -- "$cur" ) )
+			;;
+		*)
+			;;
+	esac
+	return 0;
+}
+_dcos_package_repo(){
+    local subcommands="
+        add
+		remove
+		list
+    "
+   	__dcos_childCommand "$subcommands" && return
+	case "$cur" in
+		-*)
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+	return 0;	
+}
+_dcos_package(){
+    local subcommands="
+        describe
+		install
+		list
+		search
+		repo
+		uninstall
+		update
+    "
+
+   	__dcos_childCommand "$subcommands" && return
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help --info --config-schema" -- "$cur" ) )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+	return 0;	
+}
 
 #######################################################################################
 ##
