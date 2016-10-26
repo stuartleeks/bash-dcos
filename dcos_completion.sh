@@ -123,6 +123,41 @@ _dcos_auth(){
 ##
 
 # TODO - config
+_dcos_config_set(){
+	# TODO consider completing name
+	return 0;
+}
+_dcos_config_show(){
+	# TODO complete name
+	return 0;
+}
+_dcos_config_unset(){
+	# TODO complete name
+	return 0;
+}
+_dcos_config_validate(){
+	return 0;
+}
+_dcos_config(){
+    local subcommands="
+        set
+		show
+		unset
+		validate
+    "
+
+   	__dcos_childCommand "$subcommands" && return
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help --info" -- "$cur" ) )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+	return 0;	
+}
 
 #######################################################################################
 ##
@@ -720,7 +755,7 @@ _dcos_task_log(){
 	esac
 	return 0;
 }
-_dcos_task_log(){
+_dcos_task_ls(){
 	case "$cur" in
 		-*)
 			COMPREPLY=( $( compgen -W "--long --completed" -- "$cur" ) )
