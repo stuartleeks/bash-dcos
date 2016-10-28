@@ -732,7 +732,6 @@ _dcos_marathon(){
 ## dcos package
 ##
 
-# TODO - package
 _dcos_package_describe(){
 	case "$cur" in
 		-*)
