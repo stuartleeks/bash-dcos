@@ -62,35 +62,40 @@ __dcos_log childCommand.ret1
 
 # TODO look at how to cache some of this :-)
 
+__dcos_complete_job_ids(){
+	local jobs=( $(dcos job list --json | jq --raw-output ".[] | .id") )
+	COMPREPLY=( $(compgen -W "${jobs[*]}" -- "$cur") )
+}
+
 __dcos_complete_marathon_app_ids(){
 	local apps=( $(dcos marathon app list --json | jq --raw-output ".[] | .id") )
 	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
 }
 __dcos_complete_marathon_deployment_ids(){
-	local apps=( $(dcos marathon deployment list --json | jq --raw-output ".[] | .id") )
-	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
+	local deployments=( $(dcos marathon deployment list --json | jq --raw-output ".[] | .id") )
+	COMPREPLY=( $(compgen -W "${deployments[*]}" -- "$cur") )
 }
 __dcos_complete_marathon_group_ids(){
-	local apps=( $(dcos marathon group list --json | jq --raw-output ".[] | .id") )
-	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
+	local groups=( $(dcos marathon group list --json | jq --raw-output ".[] | .id") )
+	COMPREPLY=( $(compgen -W "${groups[*]}" -- "$cur") )
 }
 __dcos_complete_marathon_task_ids(){
-	local apps=( $(dcos marathon task list --json | jq --raw-output ".[] | .id") )
-	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
+	local tasks=( $(dcos marathon task list --json | jq --raw-output ".[] | .id") )
+	COMPREPLY=( $(compgen -W "${tasks[*]}" -- "$cur") )
 }
 
 __dcos_complete_package_names(){
-	local apps=( $(dcos package search --json | jq --raw-output ".[] | .[]  | .name") )
-	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
+	local packages=( $(dcos package search --json | jq --raw-output ".[] | .[]  | .name") )
+	COMPREPLY=( $(compgen -W "${packages[*]}" -- "$cur") )
 }
 __dcos_complete_package_repo_names(){
-	local apps=( $(dcos package repo list --json | jq --raw-output ".[] | .[]  | .name") )
-	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
+	local repos=( $(dcos package repo list --json | jq --raw-output ".[] | .[]  | .name") )
+	COMPREPLY=( $(compgen -W "${repos[*]}" -- "$cur") )
 }
 
 __dcos_complete_task_ids(){
-	local apps=( $(dcos task ls | grep "===>" | awk '{print $2}') )
-	COMPREPLY=( $(compgen -W "${apps[*]}" -- "$cur") )
+	local tasks=( $(dcos task ls | grep "===>" | awk '{print $2}') )
+	COMPREPLY=( $(compgen -W "${tasks[*]}" -- "$cur") )
 }
 
 
@@ -172,8 +177,129 @@ _dcos_config(){
 ##
 
 # TODO - job
+_dcos_job_add(){
+	COMPREPLY=( $( compgen -o filenames -A file -- "$cur" ) )
+	return 0;
+}
+_dcos_job_remove(){
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--stop-current-job-runs" -- "$cur" ) )
+			;;
+		*)
+			cur="${cur##*=}"
+			__dcos_complete_job_ids
+			return 0
+			;;
+	esac
+	return 0;
+}
+_dcos_job_show(){
+	__dcos_complete_job_ids
+	return 0;
+}
+_dcos_job_update(){
+	COMPREPLY=( $( compgen -o filenames -A file -- "$cur" ) )
+	return 0;
+}
+_dcos_job_kill(){
+	# TODO complete run-id
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--all" -- "$cur" ) )
+			;;
+		*)
+			cur="${cur##*=}"
+			__dcos_complete_job_ids
+			return 0
+			;;
+	esac
+	return 0;
+}
+_dcos_job_run(){
+	__dcos_complete_job_ids
+	return 0;
+}
+_dcos_job_list(){
+	COMPREPLY=( $( compgen -W "--json" -- "$cur" ) )
+	return 0;
+}
+_dcos_job_schedule_add(){
+	## TODO complete schedule file
+	__dcos_complete_job_ids
+	return 0;
+}
+_dcos_job_schedule_show(){
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--json" -- "$cur" ) )
+			;;
+		*)
+			__dcos_complete_job_ids
+			;;
+	esac
+	return 0;	
+}
+_dcos_job_schedule_remove(){
+	## TODO complete schedule-id
+	__dcos_complete_job_ids
+	return 0;
+}
+_dcos_job_schedule_update(){
+	## TODO complete schedule file
+	__dcos_complete_job_ids
+	return 0;
+}
+_dcos_job_schedule(){
+    local subcommands="
+        add
+		show
+		remove
+		update
+    "
 
+   	__dcos_childCommand "$subcommands" && return
 
+	COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+	return 0;	
+}
+_dcos_job_history(){
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--json --show-failures" -- "$cur" ) )
+			;;
+		*)
+			__dcos_complete_job_ids
+			;;
+	esac
+	return 0;	
+}
+## TODO "show runs"
+_dcos_job(){
+    local subcommands="
+        add
+		remove
+		show
+		update
+		kill
+		run
+		list
+		schedule
+		history
+    "
+
+   	__dcos_childCommand "$subcommands" && return
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help --version --config-schema --info" -- "$cur" ) )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+	return 0;	
+}
 #######################################################################################
 ##
 ## dcos marathon
@@ -794,6 +920,7 @@ _dcos()
         auth
         config
         help
+		job
         marathon
         node
         package
