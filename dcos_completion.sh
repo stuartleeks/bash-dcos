@@ -93,6 +93,15 @@ __dcos_complete_package_repo_names(){
 	COMPREPLY=( $(compgen -W "${repos[*]}" -- "$cur") )
 }
 
+__dcos_complete_service_ids(){
+	local jobs=( $(dcos service --json | jq --raw-output ".[] | .id") )
+	COMPREPLY=( $(compgen -W "${jobs[*]}" -- "$cur") )
+}
+__dcos_complete_service_names(){
+	local jobs=( $(dcos service --json | jq --raw-output ".[] | .name") )
+	COMPREPLY=( $(compgen -W "${jobs[*]}" -- "$cur") )
+}
+
 __dcos_complete_task_ids(){
 	local tasks=( $(dcos task ls | grep "===>" | awk '{print $2}') )
 	COMPREPLY=( $(compgen -W "${tasks[*]}" -- "$cur") )
@@ -235,6 +244,7 @@ _dcos_job_schedule_show(){
 			COMPREPLY=( $( compgen -W "--json" -- "$cur" ) )
 			;;
 		*)
+			cur="${cur##*=}"
 			__dcos_complete_job_ids
 			;;
 	esac
@@ -269,6 +279,7 @@ _dcos_job_history(){
 			COMPREPLY=( $( compgen -W "--json --show-failures" -- "$cur" ) )
 			;;
 		*)
+			cur="${cur##*=}"
 			__dcos_complete_job_ids
 			;;
 	esac
@@ -858,7 +869,42 @@ _dcos_package(){
 ## dcos service
 ##
 
-# TODO - service
+_dcos_service_log(){
+	# TODO complete file
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--follow --lines= --ssh-config-file" -- "$cur" ) )
+			;;
+		*)
+			cur="${cur##*=}"
+			__dcos_complete_service_names
+			return 0
+			;;
+	esac
+	return 0;
+}
+_dcos_service_shutdown(){
+	__dcos_complete_service_ids
+	return 0
+}
+_dcos_service(){
+    local subcommands="
+        log
+		shutdown
+    "
+
+   	__dcos_childCommand "$subcommands" && return
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help --info --completed --inactive --json" -- "$cur" ) ) ## TODO split these out as they're not all valid together'
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+	return 0;	
+}
 
 
 #######################################################################################
@@ -866,7 +912,6 @@ _dcos_package(){
 ## dcos task
 ##
 
-# TODO - task
 _dcos_task_log(){
 	case "$cur" in
 		-*)
