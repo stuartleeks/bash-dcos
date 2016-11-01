@@ -1,0 +1,2 @@
+# force bash scripts to be LF only
+*.sh text eol=lf 
