@@ -62,6 +62,16 @@ __dcos_log childCommand.ret1
 
 # TODO look at how to cache some of this :-)
 
+__dcos_complete_clusters(){
+	# This is very slow...
+	# local clusters=( $(dcos cluster list --json | jq --raw-output ".[] | .name") )
+
+	# So instead...
+	local clusters=$(sed -n -e 's/name = "\(.*\)"/\1/p' ~/.dcos/clusters/*/dcos.toml)
+
+	COMPREPLY=( $(compgen -W "${clusters[*]}" -- "$cur") )
+}
+
 __dcos_complete_job_ids(){
 	local jobs=( $(dcos job list --json | jq --raw-output ".[] | .id") )
 	COMPREPLY=( $(compgen -W "${jobs[*]}" -- "$cur") )
@@ -179,6 +189,66 @@ _dcos_config(){
 ##
 
 # TODO - help
+
+#######################################################################################
+##
+## dcos cluster
+##
+_dcos_cluster_attach() {
+	__dcos_complete_clusters
+	return 0
+}
+
+_dcos_cluster_list() {
+	COMPREPLY=( $( compgen -W "--attached --json" -- "$cur" ) )
+	return 0
+}
+
+_dcos_cluster_remove(){
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--all" -- "$cur" ) )
+			;;
+		*)
+			cur="${cur##*=}"
+			__dcos_complete_clusters
+			return 0
+			;;
+	esac
+	return 0;
+}
+
+_dcos_cluster_rename(){
+	__dcos_complete_clusters
+	return 0;
+}
+
+_dcos_cluster_setup(){
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--insecure --no-check --ca-certs= --provider= --username= --password= --password-file= --password-env= --private-key=" -- "$cur" ) )
+			;;
+		*)
+			;;
+	esac
+	return 0;
+}
+
+_dcos_cluster(){
+    local subcommands="attach list rename remove setup"
+
+    __dcos_childCommand "$subcommands" && return
+
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help --info --version" -- "$cur" ) )
+			;;
+		*)
+			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
+			;;
+	esac
+	return 0;
+}
 
 #######################################################################################
 ##
@@ -955,13 +1025,14 @@ _dcos_task(){
 			COMPREPLY=( $( compgen -W "$subcommands" -- "$cur" ) )
 			;;
 	esac
-	return 0;	
+	return 0;
 }
 
 _dcos()
 {
     local commands="
         auth
+        cluster
         config
         help
 		job
